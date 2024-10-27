@@ -1,8 +1,5 @@
-package com.sforin.EtherscanTranscations.enums;
+package com.sforin.EtherscanTransactions.enums;
 
-/**
- *
- */
 public enum LogOperation {
     NEW_ADDRESS("Inserted a new address"),
     UPDATE_ADDRESS("Address updated"),

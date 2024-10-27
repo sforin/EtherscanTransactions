@@ -1,7 +1,8 @@
-package com.sforin.EtherscanTranscations.model;
+package com.sforin.EtherscanTransactions.model;
 
 import jakarta.persistence.*;
 
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
 @Entity
@@ -20,6 +21,9 @@ public class Address {
 
     @Column(name = "last_update_at", nullable = false)
     private Timestamp lastUpdateAt;
+
+    @Column(name = "balance", nullable = false)
+    private BigInteger balance;
 
     public Integer getId() {
         return id;
@@ -53,4 +57,11 @@ public class Address {
         this.lastUpdateAt = lastUpdateAt;
     }
 
+    public BigInteger getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigInteger fetch) {
+        this.balance = fetch;
+    }
 }

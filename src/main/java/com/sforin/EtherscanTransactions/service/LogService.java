@@ -1,7 +1,7 @@
-package com.sforin.EtherscanTranscations.service;
+package com.sforin.EtherscanTransactions.service;
 
-import com.sforin.EtherscanTranscations.model.Log;
-import com.sforin.EtherscanTranscations.repository.LogRepository;
+import com.sforin.EtherscanTransactions.model.Log;
+import com.sforin.EtherscanTransactions.repository.LogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

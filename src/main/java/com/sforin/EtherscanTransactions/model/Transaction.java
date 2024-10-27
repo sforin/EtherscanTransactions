@@ -1,4 +1,4 @@
-package com.sforin.EtherscanTranscations.model;
+package com.sforin.EtherscanTransactions.model;
 
 import jakarta.persistence.*;
 

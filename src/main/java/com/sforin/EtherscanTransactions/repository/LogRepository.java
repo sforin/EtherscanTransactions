@@ -1,6 +1,6 @@
-package com.sforin.EtherscanTranscations.repository;
+package com.sforin.EtherscanTransactions.repository;
 
-import com.sforin.EtherscanTranscations.model.Log;
+import com.sforin.EtherscanTransactions.model.Log;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

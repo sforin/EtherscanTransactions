@@ -1,10 +1,11 @@
-package com.sforin.EtherscanTranscations.dto;
+package com.sforin.EtherscanTransactions.dto;
 
-import com.sforin.EtherscanTranscations.enums.ResponseDTOStatus;
+import com.sforin.EtherscanTransactions.enums.ResponseDTOStatus;
 
 /**
+ * A generic base class for standardizing API responses, encapsulating status, message, and result data.
  *
- * @param <T>
+ * @param <T> the type of the response result (e.g., list of transactions, single object, etc.)
  */
 public abstract class BaseResponseDTO<T> {
     private ResponseDTOStatus status;
