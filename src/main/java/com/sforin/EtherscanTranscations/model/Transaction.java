@@ -7,19 +7,6 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "\"transaction\"")
 public class Transaction {
-    @Override
-    public String toString() {
-        return "Transaction{" +
-                "transactionHash='" + hash + '\'' +
-                ", blockNumber=" + blockNumber +
-                ", timeStamp=" + timeStamp +
-                ", from='" + from + '\'' +
-                ", to='" + to + '\'' +
-                ", value=" + value +
-                ", gasUsed=" + gasUsed +
-                ", address=" + address +
-                '}';
-    }
 
     @Id
     @Column(name = "transaction_hash", nullable = false, length = 66)
@@ -108,6 +95,20 @@ public class Transaction {
 
     public void setAddress(int address) {
         this.address = address;
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "transactionHash='" + hash + '\'' +
+                ", blockNumber=" + blockNumber +
+                ", timeStamp=" + timeStamp +
+                ", from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                ", value=" + value +
+                ", gasUsed=" + gasUsed +
+                ", address=" + address +
+                '}';
     }
 
 }

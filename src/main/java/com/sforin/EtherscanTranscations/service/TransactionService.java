@@ -1,15 +1,26 @@
 package com.sforin.EtherscanTranscations.service;
 
+import com.sforin.EtherscanTranscations.dto.APIResponseDTO;
+import com.sforin.EtherscanTranscations.dto.TransactionResponseDTO;
+import com.sforin.EtherscanTranscations.enums.LogOperation;
+import com.sforin.EtherscanTranscations.enums.ResponseDTOStatus;
 import com.sforin.EtherscanTranscations.model.Address;
+import com.sforin.EtherscanTranscations.dto.EtherscanResponseDTO;
 import com.sforin.EtherscanTranscations.model.Transaction;
 import com.sforin.EtherscanTranscations.repository.AddressRepository;
 import com.sforin.EtherscanTranscations.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -20,6 +31,8 @@ public class TransactionService {
     private AddressRepository addressRepository;
     @Autowired
     private EtherscanService etherscanService;
+    @Autowired
+    private LogService logService;
 
     public List<Transaction> getAllTransactions(){
         return transactionRepository.findAll();
@@ -30,48 +43,70 @@ public class TransactionService {
      * @param address
      * @return
      */
-    public List<Transaction> getTransactionsByAddress(String address){
+    public List<TransactionResponseDTO> getTransactionsByAddress(String address){
         Optional<Address> currAddress = addressRepository.findByAddress(address);
-        if(currAddress.isEmpty()){
-            //TODO: check if really nead to create another Address
-            Address newAddress = new Address();
-            newAddress.setAddress(address);
-            newAddress.setCreatedAt(LocalDate.from(LocalDateTime.now()));
-            newAddress.setLastUpdateAt(LocalDate.from(LocalDateTime.now()));
-            addressRepository.save(newAddress);
-            currAddress = addressRepository.findByAddress(address);
-        }
-        return transactionRepository.findByAddress(currAddress.orElseThrow().getId());
+        List<Transaction> currTransaction = transactionRepository.findByAddress(currAddress.orElseThrow().getId());
+        return transactionRepository.getTransactionResponseDTO(currTransaction.get(0).getAddress());
     }
 
     /**
      *
      * @param ethereumAddress
+     * @return
      */
-    public void updateTransactions(String ethereumAddress){
-        Address address;
-        Optional<Address> addressOptional = addressRepository.findByAddress(ethereumAddress);
-        if(addressOptional.isPresent()){
-            address = addressOptional.get();
-        }
-        else{
-            address = new Address();
-            address.setAddress(ethereumAddress);
-            address.setCreatedAt(LocalDate.from(LocalDateTime.now()));
-            address.setLastUpdateAt(LocalDate.from(LocalDateTime.now()));
-            addressRepository.save(address);
-            address = addressRepository.findByAddress(ethereumAddress).orElseThrow();
-        }
-        List<Transaction> newTransactions = etherscanService.getTransactions(ethereumAddress);
-        for(Transaction newTransaction : newTransactions){
-            if(transactionRepository.findByHash(newTransaction.getHash()).isEmpty()){
-                Transaction transaction = getTransaction(newTransaction, address);
-                transactionRepository.save(transaction);
-            }
-        }
+    public ResponseEntity<APIResponseDTO> updateTransactions(String ethereumAddress){
+        try {
+            ResponseEntity<EtherscanResponseDTO> newTransactions = etherscanService.getTransactions(ethereumAddress);
 
-        address.setLastUpdateAt(LocalDate.from(LocalDateTime.now()));
-        addressRepository.save(address);
+            if(Objects.requireNonNull(newTransactions.getBody()).getStatus().equals(ResponseDTOStatus.ETHERSCAN_NOT_WORKING)) {
+                APIResponseDTO apiResponseDTO = new APIResponseDTO(ResponseDTOStatus.ADDRESS_NOT_FOUND,
+                        "ETHEREUM ADDRESS NOT FOUND",
+                        Collections.emptyList());
+                return new ResponseEntity<>(apiResponseDTO, HttpStatus.OK);
+            }
+            //TODO: add comments
+            Address address = addressRepository.findByAddress(ethereumAddress).orElseGet(() -> {
+                Address newAddress = new Address();
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                newAddress.setAddress(ethereumAddress);
+                newAddress.setCreatedAt(timestamp);
+                newAddress.setLastUpdateAt(timestamp);
+                addressRepository.save(newAddress);
+                logService.saveLog(timestamp, LogOperation.NEW_ADDRESS.getDescription(), ethereumAddress);
+                return newAddress;
+            });
+
+            if (address.getId() != null) {
+                Timestamp updateTimestamp = new Timestamp(System.currentTimeMillis());
+                address.setLastUpdateAt(updateTimestamp);
+                addressRepository.save(address);
+                logService.saveLog(updateTimestamp, LogOperation.UPDATE_ADDRESS.getDescription(), ethereumAddress);
+            }
+            Timestamp downloadTransactionsTimestamp = new Timestamp(System.currentTimeMillis());
+            List<Transaction> transactions = Objects.requireNonNull(newTransactions.getBody()).getResult();
+
+            for (Transaction newTransaction : Objects.requireNonNull(transactions)) {
+                if (transactionRepository.findByHash(newTransaction.getHash()).isEmpty()) {
+                    Transaction transaction = getTransaction(newTransaction, address);
+                    transactionRepository.save(transaction);
+                    logService.saveLog(downloadTransactionsTimestamp, LogOperation.TRANSACTION_DOWNLOAD.getDescription(), transaction.getHash());
+                }
+            }
+
+            address.setLastUpdateAt(new Timestamp(System.currentTimeMillis()));
+            addressRepository.save(address);
+
+            return ResponseEntity.ok(new APIResponseDTO(ResponseDTOStatus.OK, "Transactions updated successfully", null));
+        } catch (ResourceAccessException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(new APIResponseDTO(ResponseDTOStatus.ETHERSCAN_NOT_WORKING, "Service unavailable, please try again later", null));
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(new APIResponseDTO(ResponseDTOStatus.ETHERSCAN_NOT_WORKING, "HTTP error occurred: " + e.getStatusCode(), null));
+        } catch (RestClientException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new APIResponseDTO(ResponseDTOStatus.ETHERSCAN_NOT_WORKING, "An internal server error occurred", null));
+        }
     }
 
     /**

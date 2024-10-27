@@ -2,7 +2,7 @@ package com.sforin.EtherscanTranscations.model;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDate;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "\"address\"")
@@ -16,10 +16,10 @@ public class Address {
     private String address;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDate createdAt;
+    private Timestamp createdAt;
 
     @Column(name = "last_update_at", nullable = false)
-    private LocalDate lastUpdateAt;
+    private Timestamp lastUpdateAt;
 
     public Integer getId() {
         return id;
@@ -37,19 +37,19 @@ public class Address {
         this.address = address;
     }
 
-    public LocalDate getCreatedAt() {
+    public Timestamp getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDate createdAt) {
+    public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDate getLastUpdateAt() {
+    public Timestamp getLastUpdateAt() {
         return lastUpdateAt;
     }
 
-    public void setLastUpdateAt(LocalDate lastUpdateAt) {
+    public void setLastUpdateAt(Timestamp lastUpdateAt) {
         this.lastUpdateAt = lastUpdateAt;
     }
 

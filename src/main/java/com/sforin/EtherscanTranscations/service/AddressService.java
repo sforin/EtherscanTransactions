@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class AddressService {
     @Autowired
-    AddressRepository addressRepository;
+    private AddressRepository addressRepository;
 
     public Address getAddressById(int id) {
         return addressRepository.findById(id).orElse(new Address());

@@ -5,8 +5,7 @@ import com.sforin.EtherscanTranscations.service.AddressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
@@ -24,8 +23,8 @@ public class AddressController {
         boolean addressExisting = false;
         Address newAddr = new Address();
         newAddr.setAddress(address);
-        newAddr.setCreatedAt(LocalDate.from(LocalDateTime.now()));
-        newAddr.setLastUpdateAt(LocalDate.from(LocalDateTime.now()));
+        newAddr.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        newAddr.setLastUpdateAt(new Timestamp(System.currentTimeMillis()));
         List<Address> allAddress = addressService.getAllAddresses();
         for (Address a : allAddress) {
             if(a.getAddress().equals(address)) {
