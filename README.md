@@ -70,7 +70,7 @@ Then, only the new transactions are provided
 
 With this request all the transactions are provided paginated with the given offset and number of the page. This functionality saves on the db only the transactions that aren't yet present
 
-https://api.etherscan.io/api?module=account&action=txlist&address=<ADDRESS>&startblock=<STARTBLOCK>&endblock=99999999&page=<PAGENUMBER>&offset=<OFFSET>&sort=asc&apikey=<APIKEY>
+http://localhost:8080/api/v1/transactions/getall/page/{page}/size/{size}/0x0063ec2896db3d25194667c9b5ccb69bd860b928
 
 
 #### GET request to retrieve all the LOGS
